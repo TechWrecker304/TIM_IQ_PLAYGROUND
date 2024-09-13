@@ -28,7 +28,7 @@ def load_api_key():
 def gpt4_interaction(prompt, max_tokens=1800):
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4o-mini",
+            model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "You are an advanced text analysis and manipulation assistant."},
                 {"role": "user", "content": prompt}
