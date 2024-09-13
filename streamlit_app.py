@@ -25,7 +25,7 @@ def load_api_key():
     return None
 
 # Function to interact with GPT-4 API
-def gpt4_interaction(prompt, max_tokens=1500):
+def gpt4_interaction(prompt, max_tokens=1800):
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4o-mini",
