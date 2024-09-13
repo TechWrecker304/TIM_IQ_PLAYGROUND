@@ -9,26 +9,12 @@ from PIL import Image
 
 # Constants for the app
 APP_NAME = "Trust In Media (TIM) IQ Playground Toolkit"
-CONFIG_FILE = "config.json"
-
-# Save API key securely
-def save_api_key(api_key):
-    with open(CONFIG_FILE, 'w') as config_file:
-        json.dump({'api_key': api_key}, config_file)
-
-# Load API key from the config file
-def load_api_key():
-    if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE, 'r') as config_file:
-            config = json.load(config_file)
-            return config.get('api_key')
-    return None
 
 # Function to interact with GPT-4 API
 def gpt4_interaction(prompt, max_tokens=1800):
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "You are an advanced text analysis and manipulation assistant."},
                 {"role": "user", "content": prompt}
@@ -62,24 +48,15 @@ def is_url(text):
     except ValueError:
         return False
 
-# Function to handle API key input and saving
+# Function to handle API key input
 def api_key_input():
     st.sidebar.header("API Key Configuration")
     api_key = st.sidebar.text_input("Enter your OpenAI API Key:", type="password")
     if api_key:
+        st.session_state['api_key'] = api_key
         openai.api_key = api_key
-        save_api_key(api_key)
-        st.sidebar.success("API key saved!")
-
-# Load or ask for API key
-api_key = load_api_key()
-if not api_key:
-    st.warning("OpenAI API key not found. Please enter it in the sidebar.")
-    api_key_input()
-else:
-    openai.api_key = api_key
-    # Provide an option to update the API key
-    api_key_input()
+        st.sidebar.success("API key set for this session!")
+    return api_key
 
 # Main application
 st.title(APP_NAME)
@@ -91,6 +68,15 @@ if os.path.exists(logo_path):
     st.image(logo_img, width=200)
 else:
     st.warning("Logo image not found.")
+
+# Check for API key in session state
+if 'api_key' not in st.session_state or not st.session_state['api_key']:
+    st.warning("OpenAI API key not found. Please enter it in the sidebar.")
+    api_key = api_key_input()
+    if not api_key:
+        st.stop()
+else:
+    openai.api_key = st.session_state['api_key']
 
 # Define the tools
 tools = [
@@ -110,6 +96,51 @@ tools = [
 selected_tool = st.sidebar.selectbox("Select a Tool", tools)
 
 # Function definitions for each tool
+
+def save_report_as_html(title, original_text, modified_text, analysis):
+    html_content = f"""
+    <html>
+    <head>
+    <title>{title}</title>
+    <style>
+    body {{font-family: Arial, sans-serif; padding: 20px; background-color: #F0F4F8; color: #2C3E50; line-height: 1.6;}}
+    h1 {{color: #3498DB; text-align: center;}}
+    h2 {{color: #2C3E50; margin-top: 40px;}}
+    .container {{display: flex; justify-content: space-between; margin-top: 20px;}}
+    .text-box {{width: 48%; padding: 15px; background-color: white; border: 1px solid #ddd; border-radius: 8px;}}
+    pre {{font-size: 14px; white-space: pre-wrap; word-wrap: break-word;}}
+    .original {{background-color: #eef4ff;}}
+    .modified {{background-color: #eaf3e8;}}
+    .analysis {{margin-top: 20px; padding: 15px; background-color: #fff3cd; border-radius: 8px; color: #856404;}}
+    </style>
+    </head>
+    <body>
+    <h1>{title}</h1>
+    <div class="container">
+        <div class="text-box original">
+            <h2>Original Text</h2>
+            <pre>{original_text}</pre>
+        </div>
+        <div class="text-box modified">
+            <h2>Modified Text</h2>
+            <pre>{modified_text}</pre>
+        </div>
+    </div>
+    <div class="analysis">
+        <h2>Analysis</h2>
+        <pre>{analysis}</pre>
+    </div>
+    </body>
+    </html>
+    """
+
+    # Create a download button
+    st.download_button(
+        label="Download Report as HTML",
+        data=html_content,
+        file_name=f"{title}.html",
+        mime="text/html"
+    )
 
 def what_if_scenario_analyzer():
     st.header("What If? Scenario Analyzer")
@@ -161,51 +192,6 @@ Provide the modified text below, and include a brief analysis of how the informa
                 save_report_as_html("What If? Scenario Analysis", original_text, modified_text.strip(), analysis.strip())
             else:
                 st.error("There was an issue processing the text with the OpenAI API.")
-
-def save_report_as_html(title, original_text, modified_text, analysis):
-    html_content = f"""
-    <html>
-    <head>
-    <title>{title}</title>
-    <style>
-    body {{font-family: Arial, sans-serif; padding: 20px; background-color: #F0F4F8; color: #2C3E50; line-height: 1.6;}}
-    h1 {{color: #3498DB; text-align: center;}}
-    h2 {{color: #2C3E50; margin-top: 40px;}}
-    .container {{display: flex; justify-content: space-between; margin-top: 20px;}}
-    .text-box {{width: 48%; padding: 15px; background-color: white; border: 1px solid #ddd; border-radius: 8px;}}
-    pre {{font-size: 14px; white-space: pre-wrap; word-wrap: break-word;}}
-    .original {{background-color: #eef4ff;}}
-    .modified {{background-color: #eaf3e8;}}
-    .analysis {{margin-top: 20px; padding: 15px; background-color: #fff3cd; border-radius: 8px; color: #856404;}}
-    </style>
-    </head>
-    <body>
-    <h1>{title}</h1>
-    <div class="container">
-        <div class="text-box original">
-            <h2>Original Text</h2>
-            <pre>{original_text}</pre>
-        </div>
-        <div class="text-box modified">
-            <h2>Modified Text</h2>
-            <pre>{modified_text}</pre>
-        </div>
-    </div>
-    <div class="analysis">
-        <h2>Analysis</h2>
-        <pre>{analysis}</pre>
-    </div>
-    </body>
-    </html>
-    """
-
-    # Create a download button
-    st.download_button(
-        label="Download Report as HTML",
-        data=html_content,
-        file_name=f"{title}.html",
-        mime="text/html"
-    )
 
 def debate_counter_argument_generator():
     st.header("Debate Counter-Argument Generator")
