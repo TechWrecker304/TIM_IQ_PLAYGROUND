@@ -361,7 +361,7 @@ def fact_vs_opinion_analyzer():
             if not original_text:
                 return
 
-            prompt = f"""Analyze the following text and distinguish between factual statements and opinions. Highlight factual statements in one color and opinions in another. Provide explanations for the categorization.
+            prompt = f"""Analyze the following text and distinguish between factual statements and opinions. Highlight factual statements in blue and opinions in red. Provide explicit explanations for the categorization.
 
 Original text:
 {original_text}
