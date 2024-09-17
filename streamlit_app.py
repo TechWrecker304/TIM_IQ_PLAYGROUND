@@ -14,9 +14,9 @@ APP_NAME = "Trust In Media (TIM) IQ Playground Toolkit"
 def gpt4_interaction(prompt, max_tokens=1800):
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are an advanced text analysis and manipulation assistant."},
+                {"role": "system", "content": "You are an advanced text analysis,information quality expert, and manipulation assistant."},
                 {"role": "user", "content": prompt}
             ],
             max_tokens=max_tokens
@@ -361,7 +361,7 @@ def fact_vs_opinion_analyzer():
             if not original_text:
                 return
 
-            prompt = f"""Analyze the following text and distinguish between factual statements and opinions. Highlight factual statements in blue and opinions in red. Provide explicit explanations for the categorization.
+            prompt = f"""Analyze the following text and distinguish between factual statements and opinions. Isolate and highlight Facts Vs. Opinions. Provide explanations for the categorization.
 
 Original text:
 {original_text}
