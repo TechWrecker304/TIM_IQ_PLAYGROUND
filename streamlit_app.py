@@ -570,7 +570,7 @@ def clear_all():
     st.session_state.clear()
     if api_key:
         st.session_state['api_key'] = api_key
-    st.experimental_rerun()
+    st.rerun()
 
 # Fun Fact Function
 def show_fun_fact():
